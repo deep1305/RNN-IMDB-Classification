@@ -51,7 +51,7 @@ The model consists of:
   - Binary cross-entropy loss function
   - Adam optimizer
   - Early stopping to prevent overfitting
-  - Batch size of 32 for efficient training
+  - Batch size of 64 for efficient training
 
 - **Deployment**:
   - Streamlit web application for user interaction
