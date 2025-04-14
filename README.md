@@ -13,7 +13,7 @@ This project implements a **Recurrent Neural Network (RNN)** for sentiment analy
 
 - **Simple RNN Architecture**: Utilizes a basic RNN architecture with embedding layer for efficient text processing
 - **Interactive Web Interface**: Streamlit app for real-time sentiment prediction on user-provided movie reviews
-- **High Accuracy**: Achieves ~80% validation accuracy on the IMDB dataset
+- **High Accuracy**: Achieves ~65% validation accuracy on the IMDB dataset
 - **Production-Ready**: Trained model saved in H5 format for easy deployment
 
 ## 🧠 Model Architecture
