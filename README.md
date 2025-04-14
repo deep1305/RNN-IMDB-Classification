@@ -2,69 +2,118 @@
 
 ![TensorFlow](https://img.shields.io/badge/TensorFlow-2.15.0-orange)
 ![Python](https://img.shields.io/badge/Python-3.x-blue)
-![Deep Learning](https://img.shields.io/badge/Deep%20Learning-RNN-brightgreen)
+![Deep Learning](https://img.shields.io/badge/Deep%20Learning-RNN%20%7C%20LSTM-brightgreen)
 ![NLP](https://img.shields.io/badge/NLP-Sentiment%20Analysis-yellow)
 
 ## 📋 Project Overview
 
-This project implements a **Recurrent Neural Network (RNN)** for sentiment analysis on the IMDB movie review dataset. The model classifies movie reviews as either positive or negative, demonstrating the power of RNNs in understanding sequential text data and capturing contextual information.
+This project implements both a **Simple Recurrent Neural Network (RNN)** and an improved **Bidirectional LSTM** for sentiment analysis on the IMDB movie review dataset. The models classify movie reviews as either positive or negative, demonstrating the power of recurrent architectures in understanding sequential text data and capturing contextual information.
 
 ### 🎯 Key Features
 
-- **Simple RNN Architecture**: Utilizes a basic RNN architecture with embedding layer for efficient text processing
-- **Interactive Web Interface**: Streamlit app for real-time sentiment prediction on user-provided movie reviews
-- **High Accuracy**: Achieves ~65% validation accuracy on the IMDB dataset
-- **Production-Ready**: Trained model saved in H5 format for easy deployment
+- **Multiple Model Architectures**: Progression from SimpleRNN to Bidirectional LSTM
+- **Pre-trained Word Embeddings**: GloVe embeddings for improved semantic understanding
+- **Interactive Web Interface**: Streamlit app for real-time sentiment prediction
+- **High Accuracy**: Achieves up to 85% validation accuracy on the IMDB dataset
+- **Production-Ready**: Trained models saved in H5 format for easy deployment
 
-## 🧠 Model Architecture
+## 🧠 Model Evolution
 
-```
-Model: "sequential"
-_________________________________________________________________
- Layer (type)                Output Shape              Param #
-=================================================================
- embedding (Embedding)       (None, 500, 128)          1280000
+### Initial SimpleRNN Architecture
 
- simple_rnn (SimpleRNN)      (None, 128)               32896
-
- dense (Dense)               (None, 1)                 129
-
-=================================================================
-Total params: 1,313,025 (5.01 MB)
-Trainable params: 1,313,025 (5.01 MB)
-Non-trainable params: 0 (0.00 Byte)
+```python
+model = Sequential()
+model.add(Embedding(max_features, 128, input_length=max_len))
+model.add(SimpleRNN(128, activation='relu'))
+model.add(Dense(1, activation="sigmoid"))
 ```
 
-The model consists of:
-1. **Embedding Layer**: Converts words to dense vectors of fixed size (128 dimensions)
-2. **SimpleRNN Layer**: Processes sequential data with ReLU activation
-3. **Dense Layer**: Single output neuron with sigmoid activation for binary classification
+### Improved Bidirectional LSTM Architecture
+
+```python
+model = Sequential()
+model.add(Embedding(max_features, embedding_dim,
+                   weights=[embedding_matrix],  # Pre-trained GloVe embeddings
+                   input_length=max_len,
+                   trainable=False))
+model.add(Bidirectional(LSTM(64, return_sequences=True)))
+model.add(Dropout(0.3))
+model.add(Bidirectional(LSTM(32)))
+model.add(Dropout(0.3))
+model.add(Dense(1, activation='sigmoid'))
+```
+
+## 📊 Performance Comparison
+
+| Model | Training Accuracy | Validation Accuracy | Test Accuracy |
+|-------|-------------------|---------------------|---------------|
+| SimpleRNN (batch_size=32) | ~94% | ~80% | ~78% |
+| SimpleRNN (batch_size=64) | ~73% | ~65% | ~63% |
+| Bidirectional LSTM | ~92% | ~95% | ~82% | ~82% |
+
+The improved Bidirectional LSTM model demonstrates significant performance gains over the SimpleRNN architecture, particularly in validation and test accuracy.
+
+### 🚀 Why the Performance Boost?
+
+1. **Memory Capacity**: LSTM cells can retain information over longer sequences compared to SimpleRNN, which suffers from vanishing gradient problems
+
+2. **Bidirectional Processing**: Reading text in both directions captures context more effectively than unidirectional processing
+   - Example: In "The movie was not bad at all", the meaning of "bad" is affected by words both before and after it
+
+3. **Pre-trained Embeddings**: GloVe vectors contain semantic knowledge learned from billions of words
+   - Words like "excellent", "amazing", and "fantastic" are already mapped to similar vectors
+   - Helps with words that appear infrequently in the training data
+
+4. **Regularization**: Dropout prevents the model from memorizing the training data, leading to better generalization
+
+5. **Adaptive Learning**: Learning rate scheduling helps the model converge to better minima by reducing the step size when needed
+
+6. **Deeper Architecture**: Multiple stacked layers allow the model to learn hierarchical features in the text
 
 ## 🛠️ Technical Implementation
 
-- **Data Preprocessing**:
-  - Tokenization of text data
-  - Padding sequences to uniform length (500 words)
-  - Vocabulary size limited to 10,000 most frequent words
+### Data Preprocessing
 
-- **Training Strategy**:
-  - Binary cross-entropy loss function
-  - Adam optimizer
-  - Early stopping to prevent overfitting
-  - Batch size of 64 for efficient training
+- **Tokenization**: Converting text to sequences of integers
+- **Padding**: Ensuring uniform sequence length (500 words)
+- **Vocabulary**: Limited to 10,000 most frequent words
+- **Text Cleaning**: Removing HTML tags, special characters, and extra spaces
 
-- **Deployment**:
-  - Streamlit web application for user interaction
-  - Pre-trained model loaded for inference
-  - Text preprocessing pipeline for user input
+### Key Improvements in the Advanced Model
 
-## 📊 Performance
+1. **Bidirectional LSTM**: Processes sequences in both directions for better context understanding
+2. **Dropout Layers**: Prevents overfitting by randomly deactivating neurons during training
+3. **GloVe Embeddings**: Pre-trained word vectors that capture semantic relationships
+4. **Learning Rate Scheduling**: Reduces learning rate when performance plateaus
+5. **Advanced Text Preprocessing**: More thorough cleaning of input text
 
-The model achieves:
-- **Training Accuracy**: ~73%
-- **Validation Accuracy**: ~65%
+### Training Strategy
 
-This demonstrates the model's ability to generalize well to unseen data while maintaining high performance on the training set.
+```python
+# Early stopping to prevent overfitting
+early_stopping = EarlyStopping(
+    monitor='val_loss',
+    patience=5,
+    restore_best_weights=True
+)
+
+# Learning rate reduction when performance plateaus
+reduce_lr = ReduceLROnPlateau(
+    monitor='val_loss',
+    factor=0.2,
+    patience=3,
+    min_lr=0.0001
+)
+
+# Model training with callbacks
+history = model.fit(
+    X_train, y_train,
+    batch_size=32,
+    epochs=15,
+    validation_split=0.2,
+    callbacks=[early_stopping, reduce_lr]
+)
+```
 
 ## 🚀 Getting Started
 
@@ -80,31 +129,57 @@ pip install -r requirements.txt
 streamlit run main.py
 ```
 
-### Using the Model Programmatically
+### Using the Improved Model Programmatically
 
 ```python
 from tensorflow.keras.models import load_model
 import numpy as np
+from tensorflow.keras.datasets import imdb
+from tensorflow.keras.preprocessing import sequence
+import re
 
-# Load the model (batch_64 model is used in the web app for optimal performance)
-model = load_model('simple_rnn_imdb_batch_64.h5')
+# Load the IMDB dataset word index
+word_index = imdb.get_word_index()
+reverse_word_index = {value: key for key, value in word_index.items()}
 
-# Preprocess your text (see main.py for implementation details)
-# ...
+# Load the improved model
+model = load_model('improved_lstm_imdb.h5')
 
-# Make prediction
-prediction = model.predict(preprocessed_text)
+# Function to preprocess text
+def preprocess_text(text):
+    # Clean the text
+    text = text.lower()
+    text = re.sub(r'<.*?>', '', text)  # Remove HTML tags
+    text = re.sub(r'[^\w\s]', '', text)  # Remove punctuation
+    text = re.sub(r'\s+', ' ', text)  # Remove extra spaces
+
+    # Tokenize and convert to sequence
+    words = text.split()
+    encoded_review = [word_index.get(word, 2) + 3 for word in words]
+    padded_review = sequence.pad_sequences([encoded_review], maxlen=500)
+
+    return padded_review
+
+# Example usage
+sample_review = "This movie was fantastic! The acting was superb."
+preprocessed_input = preprocess_text(sample_review)
+prediction = model.predict(preprocessed_input)
 sentiment = 'Positive' if prediction[0][0] > 0.5 else 'Negative'
+print(f'Sentiment: {sentiment}')
+print(f'Prediction Score: {prediction[0][0]}')
 ```
 
 ## 📚 Project Structure
 
-- `rnn_model_training.ipynb`: Model training and evaluation notebook
+- `rnn_model_training.ipynb`: Initial SimpleRNN model training and evaluation
+- `improved_rnn_model.ipynb`: Advanced Bidirectional LSTM model with GloVe embeddings
 - `embedding.ipynb`: Exploration of word embeddings
-- `prediction.ipynb`: Testing the model on new data
+- `prediction.ipynb`: Testing the models on new data
 - `main.py`: Streamlit web application
 - `requirements.txt`: Required dependencies
-- `simple_rnn_imdb_batch_64.h5`: Pre-trained model with batch size 64 - used in the web app
+- `simple_rnn_imdb.h5`: SimpleRNN model with batch size 32 (~80% validation accuracy)
+- `simple_rnn_imdb_batch_64.h5`: SimpleRNN model with batch size 64 (~65% validation accuracy)
+- `improved_lstm_imdb.h5`: Bidirectional LSTM model with GloVe embeddings (~82% validation accuracy)
 
 ## 🔍 Why This Matters
 
@@ -116,20 +191,21 @@ Sentiment analysis has numerous real-world applications:
 
 ## 🔮 Future Improvements
 
-- Implement bidirectional RNNs for better context understanding
-- Explore LSTM and GRU architectures for improved performance
+- Implement transformer-based architectures (BERT, RoBERTa)
 - Add attention mechanisms to focus on important parts of reviews
-- Incorporate transfer learning with pre-trained language models
+- Incorporate transfer learning with larger pre-trained language models
+- Develop multi-class sentiment analysis (beyond binary positive/negative)
+- Create ensemble models combining different architectures
 
 ---
 
 ## 👨‍💻 About the Developer
 
-This project demonstrates proficiency in:
-- Deep learning with TensorFlow
-- Natural Language Processing (NLP)
-- Recurrent Neural Networks
-- Model deployment with Streamlit
-- End-to-end ML project implementation
+Hi, I'm Deep, a passionate Machine Learning Engineer with a strong interest in Natural Language Processing and Deep Learning architectures. This project represents my journey in exploring and improving RNN-based models for sentiment analysis.
 
-Feel free to reach out for collaboration or questions!
+I'm particularly interested in how different neural network architectures can be optimized for specific NLP tasks, and I enjoy the process of iteratively improving models to achieve better performance.
+
+### Connect With Me
+- **GitHub**: [deep1305](https://github.com/deep1305)
+
+I'm always open to collaboration, feedback, or discussions about machine learning and AI. Feel free to reach out if you have questions about this project or if you're interested in working together on future projects!
