@@ -61,8 +61,8 @@ The model consists of:
 ## 📊 Performance
 
 The model achieves:
-- **Training Accuracy**: ~94%
-- **Validation Accuracy**: ~80%
+- **Training Accuracy**: ~73%
+- **Validation Accuracy**: ~65%
 
 This demonstrates the model's ability to generalize well to unseen data while maintaining high performance on the training set.
 
@@ -86,8 +86,8 @@ streamlit run main.py
 from tensorflow.keras.models import load_model
 import numpy as np
 
-# Load the model
-model = load_model('simple_rnn_imdb.h5')
+# Load the model (batch_64 model is used in the web app for optimal performance)
+model = load_model('simple_rnn_imdb_batch_64.h5')
 
 # Preprocess your text (see main.py for implementation details)
 # ...
@@ -104,7 +104,7 @@ sentiment = 'Positive' if prediction[0][0] > 0.5 else 'Negative'
 - `prediction.ipynb`: Testing the model on new data
 - `main.py`: Streamlit web application
 - `requirements.txt`: Required dependencies
-- `simple_rnn_imdb.h5`: Pre-trained model
+- `simple_rnn_imdb_batch_64.h5`: Pre-trained model with batch size 64 - used in the web app
 
 ## 🔍 Why This Matters
 
